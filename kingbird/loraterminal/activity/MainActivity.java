@@ -18,6 +18,7 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -41,9 +42,11 @@ import com.kingbird.loraterminal.utils.SpUtil;
 import org.litepal.LitePal;
 
 import java.lang.ref.WeakReference;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -59,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String MY_BROADCAST_TAG = "tcpServerReceiver";
     MonitorService monitorService;
-    private TextView mTextView, mHeartBeat, mTriggerData;
+    private TextView mTextView, mHeartBeat,mTriggerData;
     private Button mCertification;
     private IntentFilter filter;
     @SuppressLint("StaticFieldLeak")
@@ -81,7 +84,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTextView = findViewById(R.id.textView);
         mHeartBeat = findViewById(R.id.Heartbeat);
-        mTriggerData = findViewById(R.id.data);
+        mTriggerData = findViewById(R.id.Triggerdata);
         mCertification = findViewById(R.id.Certification);
 
         Intent intent = new Intent(MainActivity.this, MonitorService.class);
@@ -153,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void handleMessage2(Message msg) {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
             switch (msg.what) {
                 case 0:
                     runOnUiThread(MainActivity.this::updateCboxState);
@@ -162,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 //                    Plog.e("要展示的数据", recData);
                     if (!TextUtils.isEmpty(recData)) {
                         String id = SpUtil.readString(Const.CBOXID);
-                        String text = "接收到的C端 = " + id + "的数据 =" + recData;
+                        String text = sdf.format(new Date()) + " 接收到的C端 = " + id + "的数据 =" + recData;
                         runOnUiThread(() -> mTextView.setText(text));
                     }
                     break;
@@ -171,13 +175,13 @@ public class MainActivity extends AppCompatActivity {
 //                    Plog.e("要展示的数据", heartbeatData);
                     if (!TextUtils.isEmpty(heartbeatData)) {
                         String id = SpUtil.readString(Const.CBOXID);
-                        String text = "接收到的C端 = " + id + "的心跳数据 =" + heartbeatData;
+                        String text = sdf.format(new Date()) + " 接收到的C端 = " + id + "的心跳数据 =" + heartbeatData;
                         runOnUiThread(() -> mHeartBeat.setText(text));
                     }
                     break;
                 case 3:
                     String sendData = SpUtil.readString(Const.TRIGGER_DATA);
-                    String text = "发送服务器数据：" + sendData;
+                    String text = sdf.format(new Date()) + " 发送服务器数据：" + sendData;
                     runOnUiThread(() -> mTriggerData.setText(text));
                     break;
                 case 4:
@@ -188,7 +192,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         str = "失败！";
                     }
-                    String text4 = "认证结果：" + str;
+                    String text4 = sdf.format(new Date()) + " 认证结果：" + str;
                     mCertification.setText(text4);
                     break;
                 default:
