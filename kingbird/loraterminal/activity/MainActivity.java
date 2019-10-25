@@ -35,7 +35,6 @@ import com.kingbird.loraterminal.service.MonitorService;
 import com.kingbird.loraterminal.service.StartAppService;
 import com.kingbird.loraterminal.utils.BaseUtil;
 import com.kingbird.loraterminal.utils.Const;
-import com.kingbird.loraterminal.utils.Plog;
 import com.kingbird.loraterminal.utils.SerialPortUtil;
 import com.kingbird.loraterminal.utils.SpUtil;
 
@@ -124,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
                     String msg = intent.getStringExtra(MY_BROADCAST_TAG);
                     e("传过来的值", msg);
                     Message message = Message.obtain();
+                    assert msg != null;
                     message.what = Integer.parseInt(msg);
                     message.obj = msg;
                     myHandler.sendMessage(message);
@@ -182,7 +182,13 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 4:
                     boolean result = SpUtil.readBoolean(Const.CERTIFICATION);
-                    String text4 = "认证结果：" + result;
+                    String str;
+                    if (result) {
+                        str = "成功！";
+                    } else {
+                        str = "失败！";
+                    }
+                    String text4 = "认证结果：" + str;
                     mCertification.setText(text4);
                     break;
                 default:
