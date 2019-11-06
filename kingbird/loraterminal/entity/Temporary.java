@@ -24,7 +24,7 @@ public class Temporary extends LitePalSupport {
         return requestId;
     }
 
-    public void TemPoraryData(String requestId, String sendData) {
+    public void temPoraryData(String requestId, String sendData) {
         Plog.e("添加的 sendData", sendData);
         this.requestId = requestId;
         this.sendData = sendData;

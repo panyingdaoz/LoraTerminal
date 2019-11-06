@@ -18,7 +18,6 @@ import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -269,6 +268,7 @@ public class MainActivity extends AppCompatActivity {
         SerialPortUtil.close();
         this.unbindService(conn);
         SocketManager.getInstance().close();
+        SocketManager.getInstance().closeJt();
         LocalBroadcastManager.getInstance(MainActivity.this).unregisterReceiver(myBroadcastReceiver);
         System.exit(0);
     }

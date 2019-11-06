@@ -55,4 +55,5 @@ public class CboxId extends LitePalSupport {
     public void setOnLineStatus(int onLineStatus) {
         this.onLineStatus = onLineStatus;
     }
+
 }

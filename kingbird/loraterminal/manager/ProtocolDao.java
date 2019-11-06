@@ -19,6 +19,7 @@ public class ProtocolDao {
      * 帧头
      */
     private static final short CONFIGURE_HEADER_NORMAL_LORA = (byte) 0x55;
+    private static final short HEADER_NORMAL = (short) 0xA991;
     /**
      * 包尾
      */
@@ -99,7 +100,6 @@ public class ProtocolDao {
 
         //cbox ID
         data[1] = (byte) cboxId;
-//        System.arraycopy(cboxId.getBytes(), 0, data, 1, 1);
 
         //功能码
         data[2] = (byte) 0x01;
@@ -218,6 +218,87 @@ public class ProtocolDao {
         data[i4] = (byte) hour;
         data[i5] = (byte) minute;
         data[i6] = (byte) second;
+    }
+
+    public static byte[] loraHeartBeat(String deviceId) {
+
+        byte[] data = new byte[37];
+
+        //帧头
+        data[0] = (byte) ((HEADER_NORMAL >> 8) & 0xFF);
+        data[1] = (byte) (HEADER_NORMAL & 0xFF);
+
+        //设备ID
+        System.arraycopy(deviceId.getBytes(), 0, data, 2, 32);
+
+        //功能码
+        data[34] = (byte) 0x0A;
+
+        //数据长度
+        data[35] = (byte) 0;
+
+        //校验
+        data[36] = calcCheckSum(data, data.length - 1);
+
+        return data;
+    }
+
+    /**
+     * 终端log上传回应
+     */
+    public static byte[] appLogAnswer(String deviceId, boolean isResult) {
+
+        byte[] data = new byte[17];
+
+        //帧头
+        data[0] = (byte) ((HEADER_NORMAL >> 8) & 0xFF);
+        data[1] = (byte) (HEADER_NORMAL & 0xFF);
+
+        //设备ID
+        System.arraycopy(deviceId.getBytes(), 0, data, 2, 11);
+
+        //功能码
+        data[13] = (byte) 0x0B;
+
+        //数据长度
+        data[14] = (byte) 1;
+
+        //LOG 上传结果
+        data[15] = (byte) (isResult ? 1 : 0);
+
+        //校验
+        data[16] = calcCheckSum(data, data.length - 1);
+
+        return data;
+    }
+
+    /**
+     * 终端更新回应
+     */
+    public static byte[] appUpdateAswer(String deviceId, boolean isResult) {
+
+        byte[] data = new byte[17];
+
+        //帧头
+        data[0] = (byte) ((HEADER_NORMAL >> 8) & 0xFF);
+        data[1] = (byte) (HEADER_NORMAL & 0xFF);
+
+        //设备ID
+        System.arraycopy(deviceId.getBytes(), 0, data, 2, 11);
+
+        //功能码
+        data[13] = (byte) 0x0C;
+
+        //数据长度
+        data[14] = (byte) 1;
+
+        //LOG 上传结果
+        data[15] = (byte) (isResult ? 1 : 0);
+
+        //校验
+        data[16] = calcCheckSum(data, data.length - 1);
+
+        return data;
     }
 
     /**

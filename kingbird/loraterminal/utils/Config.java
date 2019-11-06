@@ -17,6 +17,7 @@ public class Config {
     public static final String PACKAGE_NAME2 = "com.kingbird.loraterminal";
     public static final String YZDJ_PACKAGE_NAME = "com.yzdj.tt";
     public static final String MY_LOG_URL = ROOT_DIRECTORY_URL + "Mylog/";
+    public static final String APP_LOG = "http://log.jtymedia.com/api/log";
     /**
      * 头
      */
@@ -25,6 +26,14 @@ public class Config {
      * 尾
      */
     public static final String TAIL = "AA";
+    /**
+     * 功能码
+     */
+    public static final String NUMBER_0B = "0B";
+    /**
+     * 功能码
+     */
+    public static final String NUMBER_0C = "0C";
     /**
      * 主板型号
      */

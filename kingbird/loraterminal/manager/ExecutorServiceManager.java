@@ -18,7 +18,7 @@ public class ExecutorServiceManager {
     private ScheduledExecutorService scheduledExecutorService;
 
     private ExecutorServiceManager() {
-        int numberOfCores = Runtime.getRuntime().availableProcessors();
+        int numberOfCores = Runtime.getRuntime().availableProcessors() + 3;
         scheduledExecutorService = new ScheduledThreadPoolExecutor(numberOfCores,
                 new BasicThreadFactory.Builder().namingPattern("example-schedule-pool-%d").daemon(true).build());
     }

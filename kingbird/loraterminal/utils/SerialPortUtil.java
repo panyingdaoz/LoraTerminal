@@ -14,7 +14,6 @@ import com.kingbird.loraterminal.manager.ProtocolManager;
 import com.kingbird.loraterminal.manager.SocketManager;
 import com.kingbird.loraterminal.manager.ThreadManager;
 import com.kingbird.loraterminal.service.MonitorService;
-import com.socks.library.KLog;
 
 import org.litepal.LitePal;
 
@@ -134,7 +133,7 @@ public class SerialPortUtil {
     /**
      * 发送串口指令
      */
-    public static void sendPort(byte[] data) {
+    private static void sendPort(byte[] data) {
         if (!isFlagSerial) {
             Plog.e("串口未打开,发送失败", bytes2HexString(data));
             return;
@@ -156,36 +155,33 @@ public class SerialPortUtil {
         if (receiveThread != null && !isFlagSerial) {
             return;
         }
-        ThreadManager.getInstance().doExecute(new Runnable() {
-            @Override
-            public void run() {
-                while (isFlagSerial) {
-                    try {
-                        byte[] data = new byte[inputStream.available()];
-                        if (inputStream == null) {
-                            return;
-                        }
-                        int size = inputStream.read(data);
-                        if (size > 0 && isFlagSerial) {
-                            current = System.currentTimeMillis();
-                            if (byteFinal == null) {
-                                byteFinal = data;
-                            } else {
-                                byteFinal = BaseUtil.mergerArray(byteFinal, data);
-                            }
-                            Plog.e("当前数据", bytes2HexString(byteFinal));
-                        } else if (size == 0) {
-                            long time = System.currentTimeMillis();
-                            long difference = time - current;
-                            if (difference > 100 && byteFinal != null) {
-                                Plog.e("最终数据", bytes2HexString(byteFinal));
-                                serialPortParse(byteFinal);
-                                byteFinal = null;
-                            }
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        ThreadManager.getInstance().doExecute(() -> {
+            while (isFlagSerial) {
+                try {
+                    byte[] data = new byte[inputStream.available()];
+                    if (inputStream == null) {
+                        return;
                     }
+                    int size = inputStream.read(data);
+                    if (size > 0 && isFlagSerial) {
+                        current = System.currentTimeMillis();
+                        if (byteFinal == null) {
+                            byteFinal = data;
+                        } else {
+                            byteFinal = BaseUtil.mergerArray(byteFinal, data);
+                        }
+                        Plog.e("当前数据", bytes2HexString(byteFinal));
+                    } else if (size == 0) {
+                        long time = System.currentTimeMillis();
+                        long difference = time - current;
+                        if (difference > 100 && byteFinal != null) {
+                            Plog.e("最终数据", bytes2HexString(byteFinal));
+                            serialPortParse(byteFinal);
+                            byteFinal = null;
+                        }
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -343,6 +339,8 @@ public class SerialPortUtil {
     private static void parseArray(byte[] dataUseful, int readId, String function) {
         try {
             String currentStatu;
+            Date beforceAction = null;
+            boolean isSend = false;
             Plog.e("有效数据", bytes2HexString(dataUseful));
             String onoffId = getAnString(dataUseful, 0, 1);
             Plog.e("开关ID和C端ID", onoffId, readId);
@@ -358,7 +356,7 @@ public class SerialPortUtil {
                     int minue = getAnIntHex(dataUseful, 6, 1, 16);
                     int second = getAnIntHex(dataUseful, 7, 1, 16);
                     String endTime = year + "-" + month + "-" + day + " " + hour + ":" + minue + ":" + second;
-                    Plog.e("年月日", endTime);
+                    Plog.e("actionTime时间：", endTime);
                     Date date;
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
                     if (STRING_02.equals(function)) {
@@ -393,7 +391,7 @@ public class SerialPortUtil {
                                     for (BeforceStatusLitePal clientIdLists : clientIdList) {
                                         String beforceNodeId = nodeIdLists.getNodeId();
                                         String beforceStatu = statusLists.getStatus();
-                                        Date beforceAction = sdf.parse(actionTimeLists.getActionTime());
+                                        beforceAction = sdf.parse(actionTimeLists.getActionTime());
                                         assert beforceAction != null;
                                         long bAction = beforceAction.getTime();
                                         String beforceClient = clientIdLists.getClientId();
@@ -423,32 +421,49 @@ public class SerialPortUtil {
                         beforce = null;
                     }
 
-                    CurrentStatus current = new CurrentStatus();
-                    current.setNodeId(loraId);
-                    current.setStatus(currentStatu);
-                    current.setActionTime(date);
-                    current.setDurationTime(0);
-                    current.setClientId(clientId);
+                    assert date != null;
+                    assert beforceAction != null;
+                    if (date.getTime() != 0 && beforceAction.getTime() != 0) {
+                        if (date.getTime() == beforceAction.getTime()) {
+                            isSend = false;
+                            Plog.e("本条数据是重复数据。取消发送");
+                        } else {
+                            isSend = true;
+                            Plog.e("本条数据不是是重复数据。可以发送");
+                        }
+                    } else {
+                        isSend = true;
+                        Plog.e("要发送数据！");
+                    }
 
-                    StatusGroup statusGroup = new StatusGroup();
-                    statusGroup.setBeforceStatus(beforce);
-                    statusGroup.setCurrentStatus(current);
+                    if (isSend) {
+                        CurrentStatus current = new CurrentStatus();
+                        current.setNodeId(loraId);
+                        current.setStatus(currentStatu);
+                        current.setActionTime(date);
+                        current.setDurationTime(0);
+                        current.setClientId(clientId);
 
-                    LoraParameter lora = new LoraParameter();
-                    lora.setConnTypeEnum(DRIVE_STATUS);
-                    lora.setCertification(getCertification());
-                    lora.setStatusGroup(statusGroup);
-                    lora.setRequestId(requestId);
-                    lora.setResult(false);
+                        StatusGroup statusGroup = new StatusGroup();
+                        statusGroup.setBeforceStatus(beforce);
+                        statusGroup.setCurrentStatus(current);
 
-                    String sendData = JSON.toJSONString(lora);
+                        LoraParameter lora = new LoraParameter();
+                        lora.setConnTypeEnum(DRIVE_STATUS);
+                        lora.setCertification(getCertification());
+                        lora.setStatusGroup(statusGroup);
+                        lora.setRequestId(requestId);
+                        lora.setResult(false);
 
-                    //保存current记录
-                    saveBeforceStartus(readId, loraId, currentStatu, endTime, statuTime, clientId);
-                    //检查本地数据是否发送完成
-                    inspectLocalData(sendData, readId, loraId, currentStatu, date, statuTime, requestId, clientId);
+                        String sendData = JSON.toJSONString(lora);
+
+                        //保存current记录
+                        saveBeforceStartus(readId, loraId, currentStatu, endTime, statuTime, clientId);
+                        //检查本地数据是否发送完成
+                        inspectLocalData(sendData, readId, loraId, currentStatu, date, statuTime, requestId, clientId);
 //                    // 保存发送的当前数据
 //                    localDataSave(readId, loraId, currentStatu, date, statuTime, requestId, clientId);
+                    }
                 }
             }
         } catch (Exception e) {
@@ -466,7 +481,7 @@ public class SerialPortUtil {
         if (localData.size() > 0) {
             if (sendData != null && requestId != null) {
                 Temporary temporary = new Temporary();
-                temporary.TemPoraryData(requestId, sendData);
+                temporary.temPoraryData(requestId, sendData);
                 temporary.save();
                 MonitorService monitor = new MonitorService();
                 monitor.uploadLocalData();
@@ -477,7 +492,7 @@ public class SerialPortUtil {
             if (temSize > 0) {
                 if (sendData != null && requestId != null) {
                     Temporary temporary = new Temporary();
-                    temporary.TemPoraryData(requestId, sendData);
+                    temporary.temPoraryData(requestId, sendData);
                     temporary.save();
                 }
                 List<Temporary> temporaryList = LitePal.findAll(Temporary.class);

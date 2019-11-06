@@ -33,6 +33,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
+import static com.kingbird.loraterminal.utils.Config.CONSTANT_FOUR;
 import static com.kingbird.loraterminal.utils.Config.CONSTANT_TEN;
 import static com.kingbird.loraterminal.utils.Config.MY_LOG_URL;
 
@@ -275,14 +276,19 @@ public class Plog {
     }
 
     private static void print(int type, String tag, String headString, String msg) {
-
+        String paths = MY_LOG_URL + getLogFileName2(new Date());
+        File file = new File(paths);
+        if (!file.exists()) {
+            KLog.e("创建log: " + file.mkdirs());
+        }
+//                KLog.e("路径：" + paths);
         switch (type) {
             case V:
 //                log2File("V", tag, msg);
                 Log.v(tag, msg);
                 break;
             case D:
-                log2File2("D", tag, msg, headString, getLogFileName(new Date()));
+                log2File2("D", tag, paths, msg, headString, getLogFileName(new Date()));
                 Log.d(tag, msg);
                 break;
             case I:
@@ -295,24 +301,18 @@ public class Plog {
                 break;
             case E:
 //                log2File("E", tag, msg, null);
-                String paths = MY_LOG_URL + getLogFileName2(new Date());
-                File file = new File(paths);
-                if (!file.exists()) {
-                    KLog.e("创建log: " + file.mkdirs());
-                }
-//                KLog.e("路径：" + paths);
                 String lastFileName = listFileSortByModifyTime(paths);
                 file = new File(paths + "/" + lastFileName);
                 if (file.exists()) {
                     long fileSize = file.length() / 1024 / 1024;
 //                    KLog.e("当前文件大小：" + fileSize);
-                    if (fileSize >= CONSTANT_TEN) {
+                    if (fileSize >= CONSTANT_FOUR) {
                         lastFileName = getLogFileName3(new Date(), getFiles(paths, new ArrayList<File>()).size() + 1);
                         KLog.e("新文件名：" + lastFileName);
                     }
                 }
                 KLog.e("最终文件名字：" + lastFileName);
-                log2File2("E", paths, msg, headString, lastFileName);
+                log2File2("E", tag, paths, msg, headString, lastFileName);
                 Log.e(tag, msg);
                 break;
             case A:
@@ -385,7 +385,7 @@ public class Plog {
         return sdf.format(date) + ".txt";
     }
 
-    private static String getLogFileName2(Date date) {
+    public static String getLogFileName2(Date date) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         return sdf.format(date);
     }
@@ -395,7 +395,7 @@ public class Plog {
         return sdf.format(date) + "_" + number + ".txt";
     }
 
-    private static synchronized void log2File2(String level, String path, String msg, String headString, String fileName) {
+    private static synchronized void log2File2(String level, String tag, String path, String msg, String headString, String fileName) {
         Date now = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
         String filePath = path + "/" + ((fileName == null) ? getLogFileName(now) : fileName);
@@ -423,6 +423,8 @@ public class Plog {
                     sdf.format(now) +
                     " " +
                     headString +
+                    " " +
+                    tag +
                     " " +
                     msg +
                     "\n" +
@@ -470,10 +472,10 @@ public class Plog {
                         KLog.e("比较时间", expiredTimeMillis);
                         if (file.lastModified() < expiredTimeMillis) {
                             ++expiredLogFileCnt;
-                            boolean deleteResult = deleteDirectory(path);
+                            boolean deleteResult = deleteDirectory(path + file.getName());
                             if (deleteResult) {
                                 e(TAG, "Delete expired log files successfully:" + file.getName());
-                                Log.e(TAG, "删除过期日志:文件总数=" + (subFiles.length) + ", 日志文件数=" + logFileCnt + ", " +
+                                KLog.e(TAG, "删除过期日志:文件总数=" + (subFiles.length) + ", 日志文件数=" + logFileCnt + ", " +
                                         "过期日志文件数=" + expiredLogFileCnt);
                             } else {
                                 e(TAG, "Delete expired log files failure:" + file.getName());
@@ -506,6 +508,7 @@ public class Plog {
         flag = true;
         File[] files = dirFile.listFiles();
         //遍历删除文件夹下的所有文件(包括子目录)
+        assert files != null;
         for (File file : files) {
             if (file.isFile()) {
                 //删除子文件

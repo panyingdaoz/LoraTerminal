@@ -1,5 +1,7 @@
 package com.kingbird.loraterminal.manager;
 
+import com.kingbird.loraterminal.utils.Plog;
+
 /**
  * 协议管理类
  *
@@ -27,5 +29,18 @@ public class ProtocolManager {
             e.printStackTrace();
         }
         return data;
+    }
+
+    /**
+     * 通讯类型应答
+     */
+    public void netDataAnser(byte[] data) {
+        int sendLength = SocketManager.getInstance().sendJt(data);
+        Plog.e("发送回复结果：" + sendLength);
+        if (sendLength <= 0) {
+            SocketManager.getInstance().closeJt();
+            SocketManager.getInstance().connectJt();
+            SocketManager.getInstance().sendJt(data);
+        }
     }
 }

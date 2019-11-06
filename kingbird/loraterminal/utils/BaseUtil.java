@@ -4,33 +4,41 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.view.View;
-import android.widget.ListView;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.alibaba.fastjson.JSON;
-import com.kingbird.loraterminal.R;
-import com.kingbird.loraterminal.activity.MainActivity;
-import com.kingbird.loraterminal.adapter.CboxAdapter;
+import com.kingbird.loraterminal.entity.AppLog;
 import com.kingbird.loraterminal.entity.BeforceStatusLitePal;
 import com.kingbird.loraterminal.entity.CboxId;
-import com.kingbird.loraterminal.entity.CboxStatuEntity;
 import com.kingbird.loraterminal.entity.Certification;
 import com.kingbird.loraterminal.entity.LocalData;
 import com.kingbird.loraterminal.entity.LoraParameter;
 import com.kingbird.loraterminal.entity.Temporary;
+import com.kingbird.loraterminal.manager.ProtocolDao;
 import com.kingbird.loraterminal.manager.ProtocolManager;
 import com.socks.library.KLog;
+import com.tsy.sdk.myokhttp.MyOkHttp;
+import com.tsy.sdk.myokhttp.response.JsonResponseHandler;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.litepal.LitePal;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 import static com.kingbird.loraterminal.activity.MainActivity.context;
+import static com.kingbird.loraterminal.utils.Config.APP_LOG;
+import static com.kingbird.loraterminal.utils.Config.CONSTANT_TWO;
+import static com.kingbird.loraterminal.utils.Config.MY_LOG_URL;
+import static com.kingbird.loraterminal.utils.Plog.e;
 
 /**
  * 说明：公共类
@@ -162,7 +170,7 @@ public class BaseUtil {
      * 更新每个Cbox 的操作时间 action
      */
     public static void updateCboxaAtionTime(long durationTime, String cboxId) {
-        Plog.e("存储时间", durationTime);
+        e("存储时间", durationTime);
         ContentValues values = new ContentValues();
         values.put("durationTime", durationTime);
         LitePal.updateAll(CboxId.class, values, "cboxId = ?", cboxId);
@@ -172,7 +180,7 @@ public class BaseUtil {
      * 更新每个Cbox 的状态
      */
     public static void updateCboxaState(int state, String cboxId) {
-        Plog.e("Cbox的状态", state);
+        e("Cbox的状态", state);
         ContentValues values = new ContentValues();
         values.put("state", state);
         LitePal.updateAll(CboxId.class, values, "cboxId = ?", cboxId);
@@ -186,6 +194,7 @@ public class BaseUtil {
         values.put("onLineStatus", state);
         LitePal.updateAll(CboxId.class, values, "cboxId = ?", cboxId);
     }
+
     /**
      * 更新每个Cbox 的通讯状态
      */
@@ -243,14 +252,14 @@ public class BaseUtil {
         localData.setClientId(clientId);
         localData.setUploadStatu(1);
         localData.save();
-        Plog.e("新增本地数据");
+        e("新增本地数据");
     }
 
     /**
      * 更新上传记录表
      */
     public static void saveBeforceStartus(int cboxId, String nodeId, String status, String actionTime, long durationTime, String clientId) {
-        Plog.e("修改", nodeId, cboxId);
+        e("修改", nodeId, cboxId);
         ContentValues values = new ContentValues();
         values.put("nodeId", nodeId);
         values.put("status", status);
@@ -264,7 +273,7 @@ public class BaseUtil {
      * 创建上次上传记录表
      */
     public static void newBeforceStartus(int cboxId, String nodeId, String status, String actionTime, long durationTime, String clientId) {
-        Plog.e("新建", nodeId);
+        e("新建", nodeId);
         BeforceStatusLitePal beforce = new BeforceStatusLitePal();
         beforce.setCboxId(cboxId);
         beforce.setNodeId(nodeId);
@@ -276,7 +285,82 @@ public class BaseUtil {
     }
 
     /**
-     *  通知MainActivity
+     * 上传本地log文件
+     */
+    public static void postLog(Context context, final String deviceId, String fileName) {
+        String paths = MY_LOG_URL + Plog.getLogFileName2(new Date()) + "/" + fileName;
+        KLog.e("文件路径：" + paths);
+        String content = readFileContent(paths);
+
+        AppLog.DataBean app = new AppLog.DataBean();
+        app.setFilename(fileName);
+        app.setContent(content);
+
+        AppLog appLog = new AppLog();
+        appLog.setKey("kingbird2019");
+        appLog.setData(app);
+
+        MyOkHttp myOkHttp = new MyOkHttp();
+        myOkHttp.post()
+                .url(APP_LOG)
+                .jsonParams(JSON.toJSONString(appLog))
+                .tag(context)
+                .enqueue(new JsonResponseHandler() {
+                    @Override
+                    public void onSuccess(int statusCode, JSONObject response) {
+                        KLog.e("doPostJSON log上传成功:" + response);
+                        byte[] dataLan = ProtocolDao.appLogAnswer(deviceId, true);
+                        ProtocolManager.getInstance().netDataAnser(dataLan);
+                    }
+
+                    @Override
+                    public void onSuccess(int statusCode, JSONArray response) {
+                        KLog.e("doPostJSON log上传成功:" + response);
+                    }
+
+                    @Override
+                    public void onFailure(int statusCode, String errorMsg) {
+                        KLog.e("doPostJSON log上传失败:" + errorMsg);
+                        byte[] dataLan = ProtocolDao.appLogAnswer(deviceId, false);
+                        ProtocolManager.getInstance().netDataAnser(dataLan);
+                    }
+                });
+    }
+
+    /**
+     * 读取指定log文件数据
+     */
+    private static String readFileContent(final String fileName) {
+
+        StringBuilder sbf = new StringBuilder();
+
+        File file = new File(fileName);
+        BufferedReader reader = null;
+
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            String tempStr;
+            while ((tempStr = reader.readLine()) != null) {
+                sbf.append(tempStr).append("\n");
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+            }
+        }
+
+        return sbf.toString();
+    }
+
+    /**
+     * 通知MainActivity
      */
     public static void intentActivity(String value) {
         Intent intent = new Intent();
@@ -284,10 +368,25 @@ public class BaseUtil {
         intent.putExtra("tcpServerReceiver", value);
         //将消息发送给主界面
         //安全性更好，同时拥有更高的运行效率
-        Plog.e("context对象", context);
+        e("context对象", context);
         if (context != null) {
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-            Plog.e("将消息发送给主界面", value);
+            e("将消息发送给主界面", value);
+        }
+    }
+
+    /**
+     * 删除本地文件
+     */
+    public static void removeFile(String fileName) {
+        String filePath = MY_LOG_URL + fileName;
+        File file = new File(filePath);
+        if (file.exists() && file.isFile()) {
+            if (file.delete()) {
+                e("删除成功", fileName);
+            }
+        } else {
+            e("删除失败，文件不存在", fileName);
         }
     }
 
@@ -308,6 +407,43 @@ public class BaseUtil {
     }
 
     /**
+     * 十六进制到字符串
+     */
+    public static String convertHexToString(String hex) {
+        //十六进制转换为字符串
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hex.length() - 1; i += CONSTANT_TWO) {
+            String output = hex.substring(i, (i + 2));
+            int decimal = Integer.parseInt(output, 16);
+            sb.append((char) decimal);
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 十六进制到字符串gbk
+     */
+    public static String hexToStringGbk(String s) {
+        byte[] baKeyword = new byte[s.length() / 2];
+        for (int i = 0; i < baKeyword.length; i++) {
+            try {
+                baKeyword[i] = (byte) (0xff & Integer.parseInt(s.substring(i * 2, i * 2 + 2), 16));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "";
+            }
+        }
+        try {
+            // UTF-16le:Not
+            s = new String(baKeyword, "GBK");
+        } catch (Exception e1) {
+            e1.printStackTrace();
+            return "";
+        }
+        return s;
+    }
+
+    /**
      * 两个字节数组拼接
      *
      * @param paramArrayOfByte1 字节数组1
@@ -322,7 +458,7 @@ public class BaseUtil {
             System.arraycopy(paramArrayOfByte1, 0, arrayOfByte, 0, paramArrayOfByte1.length);
             System.arraycopy(paramArrayOfByte2, 0, arrayOfByte, paramArrayOfByte1.length, paramArrayOfByte2.length);
         }
-        Plog.e("数组", bytes2HexString(arrayOfByte));
+        e("数组", bytes2HexString(arrayOfByte));
         return arrayOfByte;
     }
 }
