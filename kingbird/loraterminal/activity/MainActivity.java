@@ -37,6 +37,7 @@ import com.kingbird.loraterminal.utils.BaseUtil;
 import com.kingbird.loraterminal.utils.Const;
 import com.kingbird.loraterminal.utils.SerialPortUtil;
 import com.kingbird.loraterminal.utils.SpUtil;
+import com.socks.library.KLog;
 
 import org.litepal.LitePal;
 
@@ -123,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             if (mAction != null) {
                 if (MY_BROADCAST_TAG.equals(mAction)) {
                     String msg = intent.getStringExtra(MY_BROADCAST_TAG);
-                    e("传过来的值", msg);
+                    e("传过来的值："+ msg);
                     Message message = Message.obtain();
                     assert msg != null;
                     message.what = Integer.parseInt(msg);
@@ -220,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
                 CboxStatuEntity cboxList = new CboxStatuEntity(Integer.toString(id), status);
                 list.add(cboxList);
             }
-            e("CboxStatuEntity", JSON.toJSON(list));
+            KLog.e("CboxStatuEntity："+ JSON.toJSON(list));
         }
         try {
             runOnUiThread(() -> {

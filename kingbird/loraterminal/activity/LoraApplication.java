@@ -58,9 +58,9 @@ public class LoraApplication extends Application {
      */
     private void readConfig() {
         String filePathName = ROOT_DIRECTORY_URL + "config.prop";
-        Plog.e("配置文件路径", filePathName);
+        Plog.e("配置文件路径：" + filePathName);
         File fileCheck = new File(filePathName);
-        Plog.e("文件是否存在", fileCheck.exists(), fileCheck.isFile());
+        Plog.e("文件是否存在：" + fileCheck.exists(), fileCheck.isFile());
         if (fileCheck.exists() && fileCheck.isFile()) {
             try {
                 Properties pro = new Properties();
@@ -68,7 +68,7 @@ public class LoraApplication extends Application {
                 pro.load(in);
                 String companyId = pro.getProperty("companyID");
                 String relayId = pro.getProperty("relayID");
-                Plog.e("或取到的公司ID和继电器ID", companyId + "\n" + relayId);
+                Plog.e("或取到的公司ID和继电器ID：" + companyId + "\n" + relayId);
                 if (companyId != null && companyId.length() > 0 && relayId != null && relayId.length() > 0) {
                     SpUtil.writeString(Const.COMPANY_ID, companyId);
                     SpUtil.writeString(Const.RELAY_ID, relayId);
@@ -77,28 +77,28 @@ public class LoraApplication extends Application {
                 }
                 String ip = pro.getProperty("ip");
                 int port = Integer.parseInt(Objects.requireNonNull(pro.get("port")).toString());
-                Plog.e("ip", ip);
-                Plog.e("port", port);
+                Plog.e("ip：" + ip);
+                Plog.e("port：" + port);
                 if (ip != null && ip.length() > 0 && port != 0) {
                     SocketManager.getInstance().setSocket(ip, port);
                 }
                 int heartTimeAbox = Integer.parseInt(Objects.requireNonNull(pro.get("heartTimeA")).toString());
-                Plog.e("心跳", heartTimeAbox);
+                Plog.e("心跳：" + heartTimeAbox);
                 if (heartTimeAbox != 0) {
                     SpUtil.writeInt(Const.HEART_TIME_A, heartTimeAbox);
                 }
                 int heartTimeCbox = Integer.parseInt(Objects.requireNonNull(pro.get("heartTimeC")).toString());
-                Plog.e("关机心跳", heartTimeCbox);
+                Plog.e("关机心跳：" + heartTimeCbox);
                 if (heartTimeCbox != 0) {
                     SpUtil.writeInt(Const.HEART_TIME_C, heartTimeCbox);
                 }
                 int baudrate = Integer.parseInt(Objects.requireNonNull(pro.get("baudrate")).toString());
-                Plog.e("波特率", baudrate);
+                Plog.e("波特率：" + baudrate);
                 if (baudrate != 0) {
                     SpUtil.writeInt(Const.BAUDRATE, baudrate);
                 }
                 int downTime = Integer.parseInt(Objects.requireNonNull(pro.get("downTime")).toString());
-                Plog.e("关机时间", downTime);
+                Plog.e("关机时间：" + downTime);
                 if (downTime != 0) {
                     SpUtil.writeInt(Const.DOWN_TIME, downTime);
                 }

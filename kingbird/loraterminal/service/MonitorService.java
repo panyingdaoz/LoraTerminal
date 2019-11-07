@@ -110,7 +110,6 @@ public class MonitorService extends Service {
     public void onCreate() {
         super.onCreate();
         e("MonitorService 创建");
-
         if (Build.MODEL.equals(MODEL)) {
             SerialPortUtil.close();
             if (!SerialPortUtil.open()) {
@@ -126,7 +125,7 @@ public class MonitorService extends Service {
     }
 
     /**
-     *  连接即投服务器
+     * 连接即投服务器
      */
     private void serverReplyListener() {
         ThreadManager.getInstance().doExecute(() -> {
@@ -142,7 +141,7 @@ public class MonitorService extends Service {
     }
 
     /**
-     *  定时接收即投服务器数据并做相应处理
+     * 定时接收即投服务器数据并做相应处理
      */
     private void logRecData() {
         if (SocketManager.getInstance().getSocketJt() != null) {
@@ -221,7 +220,7 @@ public class MonitorService extends Service {
                     if (data.length() > 0) {
                         JSONObject json = JSONObject.parseObject(data);
                         String connTypeEnum = json.getString("connTypeEnum");
-                        e("connTypeEnum", connTypeEnum);
+                        e("connTypeEnum" + connTypeEnum);
                         loraReply(data, json, connTypeEnum);
                     }
                 }, 10, 1000, TimeUnit.MILLISECONDS);
@@ -251,18 +250,18 @@ public class MonitorService extends Service {
                 intentActivity("4");
                 break;
             case DRIVE_NODE:
-                e("获取CBoxID 成功", data);
+                e("获取CBoxID 成功：" + data);
                 heartbeatTime = System.currentTimeMillis() / 1000;
                 parseDriveStatus(json);
                 break;
             case DRIVE_STATUS:
                 heartbeatTime = System.currentTimeMillis() / 1000;
                 if (json.getBoolean(SUCCEE)) {
-                    e("上传成功", data);
+                    e("上传成功：" + data);
                     String requstId = json.getString("requestId");
                     int result = LitePal.deleteAll(LocalData.class, "requestId = ?", requstId);
                     int result2 = LitePal.deleteAll(Temporary.class, "requestId = ?", requstId);
-                    e("删除ID和结果", requstId + "---" + result, result2);
+                    e("删除ID和结果：" + requstId + "---" + result, result2);
                 } else {
                     e("采集数据上传失败");
                 }
@@ -270,14 +269,14 @@ public class MonitorService extends Service {
             case LOCAL_DATA:
                 heartbeatTime = System.currentTimeMillis() / 1000;
                 if (json.getBoolean(SUCCEE)) {
-                    e("本地数据上传成功", data);
+                    e("本地数据上传成功：" + data);
                     uploadLocalSuccee();
                 } else {
                     e("本地数据上传失败");
                 }
                 break;
             case HEARTBEAT:
-                e("心跳返回数据", data);
+                e("心跳返回数据：" + data);
                 break;
             default:
         }
@@ -288,7 +287,7 @@ public class MonitorService extends Service {
      */
     private void recertification() {
         LoraParameter lora = setLoraSendParameter(CERTIFICATION);
-        e("联网认证发送结果", SocketManager.getInstance().send(JSON.toJSONString(lora)));
+        e("联网认证发送结果：" + SocketManager.getInstance().send(JSON.toJSONString(lora)));
     }
 
     /**
@@ -299,13 +298,13 @@ public class MonitorService extends Service {
         if (localData.size() > 0) {
             for (LocalData localData1 : localData) {
                 String requstId = localData1.getRequestId();
-                e("查询的 requstId", requstId);
+                e("查询的 requstId：" + requstId);
                 List<LocalData> statu = localQueryStatu("uploadStatu", requstId);
                 for (LocalData status : statu) {
                     if (status.getUploadStatu() == 2) {
                         int result = LitePal.deleteAll(LocalData.class, "requestId = ?", requstId);
                         if (result > 0) {
-                            e("删除ID和结果", requstId + "---" + result);
+                            e("删除ID和结果：" + requstId + "---" + result);
                         }
                     }
                 }
@@ -340,7 +339,7 @@ public class MonitorService extends Service {
                                 long durationTime = cboxId1.getDurationTime();
                                 int state = state1.getState();
                                 int statu = status.getOnLineStatus();
-                                e("存储时间", cboxId + "---" + durationTime + "--状态" + state);
+                                e("存储时间：" + cboxId + "---" + durationTime + "--状态" + state);
                                 Duration duration = new Duration(cboxId, durationTime, state, statu);
                                 durationList.add(duration);
                             } catch (NullPointerException e) {
@@ -350,19 +349,19 @@ public class MonitorService extends Service {
                     }
                 }
             }
-            e("数据", durationList);
-            e("删除结果", LitePal.deleteAll(CboxId.class));
+            e("数据：" + durationList);
+            e("删除结果：" + LitePal.deleteAll(CboxId.class));
             try {
                 JSONArray jsonArray = JSONArray.parseArray(Objects.requireNonNull(json.get("collectNodesList")).toString());
                 int jsonSize = jsonArray.size();
-                e("数组大小", jsonSize);
+                e("数组大小：" + jsonSize);
                 for (int i = 0; i < jsonSize; i++) {
                     String parseData = jsonArray.get(i).toString();
                     JSONObject json2 = JSONObject.parseObject(parseData);
                     int cboxId = json2.getInteger("cBoxID");
                     String id = json2.getString("id");
-                    e("CBoxID", cboxId);
-                    e("id", id);
+                    e("CBoxID：" + cboxId);
+                    e("id：" + id);
                     e("新建");
                     CboxId cboxId1 = new CboxId();
                     cboxId1.setCboxId(cboxId);
@@ -381,9 +380,9 @@ public class MonitorService extends Service {
                     long dt = durationList.get(j).getDurationTime();
                     int state = durationList.get(j).getState();
                     int statu = durationList.get(j).getOnLineStatus();
-                    e("id", cd);
-                    e("获取的id对应的时间", cd + "---" + dt);
-                    e("获取的C的状态", state);
+                    e("id：" + cd);
+                    e("获取的id对应的时间：" + cd + "---" + dt);
+                    e("获取的C的状态：" + state);
                     ContentValues values = new ContentValues();
                     values.put("durationTime", dt);
                     values.put("state", state);
@@ -445,12 +444,12 @@ public class MonitorService extends Service {
                 ArrayList<CurrentStatus> localList = new ArrayList<>();
                 ArrayList<String> request = new ArrayList<>();
                 int cboxId = localData1.getCboxId();
-                e("查询C ID", cboxId);
+                e("查询C ID：" + cboxId);
                 List<LocalData> requestList = localQueryRequestId("requestId", Integer.toString(cboxId));
                 for (LocalData requestLists : requestList) {
                     request.add(requestLists.getRequestId());
                 }
-                e("requestId 数组", request);
+                e("requestId 数组：" + request);
                 int requestSize = request.size();
                 if (requestSize > 0) {
                     for (int i = 0; i < requestSize; i++) {
@@ -513,7 +512,7 @@ public class MonitorService extends Service {
         lora.setRequestId(requestId);
         lora.setResult(false);
         SocketManager.getInstance().send(JSON.toJSONString(lora));
-        e("最后发送数据", JSON.toJSONString(lora));
+        e("最后发送数据：" + JSON.toJSONString(lora));
     }
 
     /**
@@ -528,9 +527,9 @@ public class MonitorService extends Service {
             long currentTime = System.currentTimeMillis() / 1000;
             long d = currentTime - heartbeatTime;
             boolean result = SpUtil.readBoolean(Const.CERTIFICATION);
-            e("时间差", d);
-            e("认证结果", result);
-            e("心跳时间", heartbeat);
+            e("时间差：" + d);
+            e("认证结果：" + result);
+            e("心跳时间：" + heartbeat);
             if (d >= heartbeat && result) {
                 e("可以发送心跳");
                 sendHeartbeat();
@@ -591,7 +590,7 @@ public class MonitorService extends Service {
                     long durationTime = getTimes.getDurationTime();
                     long difference = time - durationTime;
                     long differenceTime = difference / 1000;
-                    e("两次数据时间差", differenceTime + "---" + loraId);
+                    e("两次数据时间差：" + differenceTime + "---" + loraId);
                     if (differenceTime >= offTime) {
                         updateCboxaSatus2(1, loraId);
                         List<CboxId> getCboxIdState = loraIdQuery("state", loraId);
@@ -636,20 +635,20 @@ public class MonitorService extends Service {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
         Date date, date2;
         date = sdf.parse(beforceLists.getActionTime());
-        e("启动时间", date);
+        e("启动时间：" + date);
         String bfStatu = statusLists.getStatus();
-        e("状态", bfStatu);
+        e("状态：" + bfStatu);
         String bfClient = clientIdLists.getClientId();
-        e("bfClient", bfClient);
+        e("bfClient：" + bfClient);
         String currentActionTime = sdf.format(time);
-        e("关机的动作时间", currentActionTime);
+        e("关机的动作时间：" + currentActionTime);
         assert date != null;
         long startTime = date.getTime();
         date2 = sdf.parse(currentActionTime);
         assert date2 != null;
         long endTime = date2.getTime();
         long durationTime = endTime - startTime;
-        e("关机动作时长", durationTime);
+        e("关机动作时长：" + durationTime);
 
         BeforceStatus beforce = new BeforceStatus();
         beforce.setNodeId(loraId);
@@ -717,7 +716,7 @@ public class MonitorService extends Service {
                     @Override
                     public void onFailure(String error) {
                         e("doDownload onFailure:" + error);
-                        e("保存路径", savePath);
+                        e("保存路径：" + savePath);
                         BaseUtil.removeFile(fileName);
                         onFailureCount++;
                         if (onFailureCount <= CONSTANT_TEN) {
@@ -732,7 +731,7 @@ public class MonitorService extends Service {
      */
     private void appUpdate(String fileName) {
         String filePath = MY_LOG_URL + fileName;
-        e("安装包路径", filePath);
+        e("安装包路径：" + filePath);
         if (PACKAGE_NAME2.equals(NetUtil.getApkInfo(MonitorService.this, filePath))) {
             installApp(filePath, this);
         } else {

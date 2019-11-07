@@ -5,7 +5,6 @@ import com.kingbird.loraterminal.service.MonitorService;
 import com.kingbird.loraterminal.utils.Const;
 import com.kingbird.loraterminal.utils.Plog;
 import com.kingbird.loraterminal.utils.SpUtil;
-import com.socks.library.KLog;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -103,7 +102,7 @@ public class SocketManager {
         try {
             if (dout != null) {
                 dout.writeObject(data);
-                Plog.e("发送的数据", data);
+                Plog.e("发送的数据："+ data);
                 SpUtil.writeString(Const.TRIGGER_DATA, data);
                 intentActivity("3");
             }
@@ -133,7 +132,7 @@ public class SocketManager {
             mConnectedJt = true;
         } catch (Exception e) {
             e.printStackTrace();
-            Plog.e("connect", e.toString());
+            Plog.e("connect："+ e.toString());
             mConnectedJt = false;
         }
         return mConnectedJt;
@@ -149,7 +148,7 @@ public class SocketManager {
         try {
             if (doutJt != null) {
                 doutJt.write(data);
-                Plog.e("发送log数据", bytes2HexString(data));
+                Plog.e("发送log数据："+ bytes2HexString(data));
             }
         } catch (Exception e) {
             Plog.e(e.toString());

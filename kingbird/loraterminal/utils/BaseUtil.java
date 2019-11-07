@@ -170,7 +170,7 @@ public class BaseUtil {
      * 更新每个Cbox 的操作时间 action
      */
     public static void updateCboxaAtionTime(long durationTime, String cboxId) {
-        e("存储时间", durationTime);
+        e("存储时间："+ durationTime);
         ContentValues values = new ContentValues();
         values.put("durationTime", durationTime);
         LitePal.updateAll(CboxId.class, values, "cboxId = ?", cboxId);
@@ -180,7 +180,7 @@ public class BaseUtil {
      * 更新每个Cbox 的状态
      */
     public static void updateCboxaState(int state, String cboxId) {
-        e("Cbox的状态", state);
+        e("Cbox的状态："+ state);
         ContentValues values = new ContentValues();
         values.put("state", state);
         LitePal.updateAll(CboxId.class, values, "cboxId = ?", cboxId);
@@ -259,7 +259,7 @@ public class BaseUtil {
      * 更新上传记录表
      */
     public static void saveBeforceStartus(int cboxId, String nodeId, String status, String actionTime, long durationTime, String clientId) {
-        e("修改", nodeId, cboxId);
+        e("修改："+ nodeId, cboxId);
         ContentValues values = new ContentValues();
         values.put("nodeId", nodeId);
         values.put("status", status);
@@ -273,7 +273,7 @@ public class BaseUtil {
      * 创建上次上传记录表
      */
     public static void newBeforceStartus(int cboxId, String nodeId, String status, String actionTime, long durationTime, String clientId) {
-        e("新建", nodeId);
+        e("新建："+ nodeId);
         BeforceStatusLitePal beforce = new BeforceStatusLitePal();
         beforce.setCboxId(cboxId);
         beforce.setNodeId(nodeId);
@@ -368,10 +368,10 @@ public class BaseUtil {
         intent.putExtra("tcpServerReceiver", value);
         //将消息发送给主界面
         //安全性更好，同时拥有更高的运行效率
-        e("context对象", context);
+        e("context对象："+ context);
         if (context != null) {
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
-            e("将消息发送给主界面", value);
+            e("将消息发送给主界面："+ value);
         }
     }
 
@@ -383,10 +383,10 @@ public class BaseUtil {
         File file = new File(filePath);
         if (file.exists() && file.isFile()) {
             if (file.delete()) {
-                e("删除成功", fileName);
+                e("删除成功："+ fileName);
             }
         } else {
-            e("删除失败，文件不存在", fileName);
+            e("删除失败，文件不存在："+ fileName);
         }
     }
 
@@ -458,7 +458,7 @@ public class BaseUtil {
             System.arraycopy(paramArrayOfByte1, 0, arrayOfByte, 0, paramArrayOfByte1.length);
             System.arraycopy(paramArrayOfByte2, 0, arrayOfByte, paramArrayOfByte1.length, paramArrayOfByte2.length);
         }
-        e("数组", bytes2HexString(arrayOfByte));
+        e("数组："+ bytes2HexString(arrayOfByte));
         return arrayOfByte;
     }
 }

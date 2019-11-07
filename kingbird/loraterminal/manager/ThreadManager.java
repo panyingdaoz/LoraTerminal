@@ -29,7 +29,7 @@ public class ThreadManager {
 
     private ThreadManager() {
         int numberOfCores = Runtime.getRuntime().availableProcessors();
-        Plog.e("线程数", numberOfCores);
+        Plog.e("线程数："+ numberOfCores);
         TimeUnit keepAliveTimeUnit = TimeUnit.SECONDS;
         BlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>();
 

@@ -51,7 +51,7 @@ public class CboxAdapter extends ArrayAdapter<CboxStatuEntity> {
         assert cboxEntity != null;
         String cboxId = cboxEntity.getCboxId();
         String state = cboxEntity.getState();
-        Plog.e("每次更新的Item", cboxId + "  " + state);
+        Plog.e("每次更新的Item："+ cboxId + "  " + state);
         viewHolder.cboxId.setText(cboxId);
         viewHolder.state.setText(state);
 

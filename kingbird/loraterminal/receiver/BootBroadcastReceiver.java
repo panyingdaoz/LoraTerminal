@@ -28,11 +28,11 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, @NonNull Intent intent) {
-        Plog.e("接收到的广播", intent.getAction());
+        Plog.e("接收到的广播："+ intent.getAction());
         if (intent.getAction() != null) {
             switch (intent.getAction()) {
                 case ACTION:
-                    Plog.e("VideoTextureActivity的状态", CustomActivityManager.getInstance().getTopActivity());
+                    Plog.e("VideoTextureActivity的状态："+ CustomActivityManager.getInstance().getTopActivity());
                     if (CustomActivityManager.getInstance().getTopActivity() == null) {
                         //后边的XXX.class就是要启动的服务
                         ExecutorServiceManager.getInstance().schedule(new Runnable() {
@@ -47,7 +47,7 @@ public class BootBroadcastReceiver extends BroadcastReceiver {
                     }
                     break;
                 case OPEN_ACTION:
-                    Plog.e("收到其他APP发来启动即投视播广播", intent.getAction());
+                    Plog.e("收到其他APP发来启动即投视播广播："+ intent.getAction());
                     Intent noteList = new Intent(context, MainActivity.class);
                     noteList.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(noteList);

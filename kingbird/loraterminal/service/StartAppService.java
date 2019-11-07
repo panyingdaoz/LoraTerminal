@@ -66,10 +66,10 @@ public class StartAppService extends Service {
      */
     private void startAPP() {
         Activity activityState = CustomActivityManager.getInstance().getTopActivity();
-        Plog.e("VideoTextureActivity的状态", activityState);
+        Plog.e("VideoTextureActivity的状态："+ activityState);
         if (activityState != null) {
             String appPackageName = getTopPackageName(activityState.toString());
-            Plog.e("最上层应用包名", appPackageName);
+            Plog.e("最上层应用包名："+ appPackageName);
             if (!PACKAGE_NAME2.equals(appPackageName) && !YZDJ_PACKAGE_NAME.equals(appPackageName)) {
                 startApp();
                 Plog.e("启动成功");

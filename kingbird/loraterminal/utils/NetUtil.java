@@ -118,16 +118,16 @@ public class NetUtil {
             PackageInfo info = pm.getPackageArchiveInfo(apkPath, PackageManager.GET_ACTIVITIES);
             ApplicationInfo appInfo = info.applicationInfo;
             String appName = pm.getApplicationLabel(appInfo).toString();
-            Plog.e("app名", appName);
+            Plog.e("app名："+ appName);
             //得到安装包名称
             String packageName = appInfo.packageName;
-            Plog.e("包名", packageName);
+            Plog.e("包名："+ packageName);
             //得到版本信息
             String version = info.versionName;
-            Plog.e("版本号", version);
+            Plog.e("版本号："+ version);
             //得到图标信息
             Drawable icon = pm.getApplicationIcon(appInfo);
-            Plog.e("图标", icon);
+            Plog.e("图标："+ icon);
         } catch (Exception e) {
             e.printStackTrace();
         }

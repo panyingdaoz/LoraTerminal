@@ -85,7 +85,7 @@ public class SerialPortUtil {
             if (baudrate2 != 0) {
                 baudrate = baudrate2;
             }
-            Plog.e("波特率", baudrate);
+            Plog.e("波特率："+ baudrate);
             SerialPort serialPort = new SerialPort(new File("/dev/ttyS6"), baudrate);
 //            SerialPort serialPort = new SerialPort(new File("/dev/ttyS6"), 115200);
             inputStream = serialPort.getInputStream();
@@ -135,12 +135,12 @@ public class SerialPortUtil {
      */
     private static void sendPort(byte[] data) {
         if (!isFlagSerial) {
-            Plog.e("串口未打开,发送失败", bytes2HexString(data));
+            Plog.e("串口未打开,发送失败："+ bytes2HexString(data));
             return;
         }
         try {
             outputStream.write(data, 0, data.length);
-            Plog.e("回复数据", bytes2HexString(data));
+            Plog.e("回复数据："+ bytes2HexString(data));
             outputStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -170,12 +170,12 @@ public class SerialPortUtil {
                         } else {
                             byteFinal = BaseUtil.mergerArray(byteFinal, data);
                         }
-                        Plog.e("当前数据", bytes2HexString(byteFinal));
+                        Plog.e("当前数据："+ bytes2HexString(byteFinal));
                     } else if (size == 0) {
                         long time = System.currentTimeMillis();
                         long difference = time - current;
                         if (difference > 100 && byteFinal != null) {
-                            Plog.e("最终数据", bytes2HexString(byteFinal));
+                            Plog.e("最终数据："+ bytes2HexString(byteFinal));
                             serialPortParse(byteFinal);
                             byteFinal = null;
                         }
@@ -192,20 +192,20 @@ public class SerialPortUtil {
      */
     public static void serialPortParse(byte[] data) {
         String recData = bytes2HexString(data);
-        Plog.e("解析的数据", recData);
+        Plog.e("解析的数据："+ recData);
         String head = bytes2HexString(ProtocolManager.getInstance().parseParameter(data, 0, 1));
         String tail = bytes2HexString(ProtocolManager.getInstance().parseParameter(data, data.length - 1, 1));
         if (HEAD.equals(head) && TAIL.equals(tail)) {
             int cboxId = getAnIntHex(data, 1, 1, 16);
             List<CboxId> cboxIdList = LitePal.findAll(CboxId.class);
-            Plog.e("CboxId 大小", cboxIdList.size());
+            Plog.e("CboxId 大小："+ cboxIdList.size());
             for (CboxId cboxId1 : cboxIdList) {
                 int readId = cboxId1.getCboxId();
-                Plog.e("接收CboxID", cboxId);
-                Plog.e("查询ID", readId);
+                Plog.e("接收CboxID："+ cboxId);
+                Plog.e("查询ID："+ readId);
                 if (readId == cboxId) {
                     String function = bytes2HexString(ProtocolManager.getInstance().parseParameter(data, 2, 1));
-                    Plog.e("功能码", function);
+                    Plog.e("功能码："+ function);
                     switch (function) {
                         case "01":
                             Plog.e("注册回复");
@@ -220,7 +220,7 @@ public class SerialPortUtil {
                             updateCboxaSatus(2, Integer.toString(cboxId));
                             int dataLength = getAnIntHex(data, 3, 1, 16);
                             String dataType = getAnString(data, 4, 1);
-                            Plog.e("数据类型", dataType);
+                            Plog.e("数据类型："+ dataType);
                             byte[] dataUseful = ProtocolManager.getInstance().parseParameter(data, 6, dataLength - 2);
                             SpUtil.writeString(Const.RECEIVE_CBOX, bytes2HexString(dataUseful));
                             SpUtil.writeString(Const.CBOXID, Integer.toString(cboxId));
@@ -290,7 +290,7 @@ public class SerialPortUtil {
                                 assert date != null;
                                 long dateLong = date.getTime();
                                 long dt = time5 - dateLong;
-                                Plog.e("关机到空闲时间差", dt);
+                                Plog.e("关机到空闲时间差："+ dt);
                                 BeforceStatus beforce = new BeforceStatus();
                                 beforce.setNodeId(nodeId);
                                 beforce.setStatus(OFF);
@@ -321,7 +321,7 @@ public class SerialPortUtil {
                                 String sendData = JSON.toJSONString(lora);
                                 SocketManager.getInstance().send(sendData);
 
-                                Plog.e("记录action", sdf.format(time5));
+                                Plog.e("记录action："+ sdf.format(time5));
                                 saveBeforceStartus(readId, nodeId, FREE, sdf.format(time5), dt, clientId);
                             } catch (ParseException e) {
                                 e.printStackTrace();
@@ -341,14 +341,14 @@ public class SerialPortUtil {
             String currentStatu;
             Date beforceAction = null;
             boolean isSend = false;
-            Plog.e("有效数据", bytes2HexString(dataUseful));
+            Plog.e("有效数据："+ bytes2HexString(dataUseful));
             String onoffId = getAnString(dataUseful, 0, 1);
-            Plog.e("开关ID和C端ID", onoffId, readId);
+            Plog.e("开关ID和C端ID："+ onoffId, readId);
             if (STRING_01.equals(onoffId)) {
                 List<CboxId> loraIdList = cboxIdQuery("nodeId", Integer.toString(readId));
                 for (CboxId loraIds : loraIdList) {
                     String loraId = loraIds.getNodeId();
-                    Plog.e("查询的nodeId", loraId);
+                    Plog.e("查询的nodeId："+ loraId);
                     int year = getAnIntHex(dataUseful, 1, 2, 16);
                     int month = getAnIntHex(dataUseful, 3, 1, 16);
                     int day = getAnIntHex(dataUseful, 4, 1, 16);
@@ -356,19 +356,20 @@ public class SerialPortUtil {
                     int minue = getAnIntHex(dataUseful, 6, 1, 16);
                     int second = getAnIntHex(dataUseful, 7, 1, 16);
                     String endTime = year + "-" + month + "-" + day + " " + hour + ":" + minue + ":" + second;
-                    Plog.e("actionTime时间：", endTime);
-                    Date date;
+                    Plog.e("actionTime时间：："+ endTime);
+                    Date date;//40289fad6bcbef7d016bcbf067a40eee
+                              //40289fad6bcbef7d016bcbf067a40eee
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
                     if (STRING_02.equals(function)) {
                         date = sdf.parse(endTime);
                     } else {
                         date = new Date();
                     }
-                    Plog.e("启动时间", date);
+                    Plog.e("启动时间："+ date);
                     int statuTime = getAnIntHex(dataUseful, 8, 4, 16);
-                    Plog.e("状态时长", statuTime);
+                    Plog.e("状态时长："+ statuTime);
                     int statuType = getAnIntHex(dataUseful, 12, 1, 16);
-                    Plog.e("状态类型", statuType);
+                    Plog.e("状态类型："+ statuType);
                     if (statuType == 1) {
                         currentStatu = BUSY;
                     } else {
@@ -380,7 +381,7 @@ public class SerialPortUtil {
 
                     BeforceStatus beforce = new BeforceStatus();
                     List<BeforceStatusLitePal> nodeIdList = cboxdQuery("nodeId", Integer.toString(readId));
-                    Plog.e("上次数据大小", nodeIdList.size());
+                    Plog.e("上次数据大小："+ nodeIdList.size());
                     if (nodeIdList.size() > 0) {
                         for (BeforceStatusLitePal nodeIdLists : nodeIdList) {
                             List<BeforceStatusLitePal> statusList = cboxdQuery("status", Integer.toString(readId));
@@ -395,10 +396,10 @@ public class SerialPortUtil {
                                         assert beforceAction != null;
                                         long bAction = beforceAction.getTime();
                                         String beforceClient = clientIdLists.getClientId();
-                                        Plog.e("上一次", beforceNodeId);
-                                        Plog.e("上一次", beforceStatu);
-                                        Plog.e("上一次", beforceAction);
-                                        Plog.e("上一次", beforceClient);
+                                        Plog.e("上一次："+ beforceNodeId);
+                                        Plog.e("上一次："+ beforceStatu);
+                                        Plog.e("上一次："+ beforceAction);
+                                        Plog.e("上一次："+ beforceClient);
                                         beforce.setNodeId(beforceNodeId);
                                         beforce.setStatus(beforceStatu);
                                         beforce.setActionTime(beforceAction);
@@ -407,7 +408,7 @@ public class SerialPortUtil {
                                         } else {
                                             long current = date.getTime();
                                             long newDurationTime = current - bAction;
-                                            Plog.e("空闲状态时长", newDurationTime);
+                                            Plog.e("空闲状态时长："+ newDurationTime);
                                             beforce.setDurationTime(newDurationTime);
                                         }
                                         beforce.setClientId(beforceClient);
@@ -477,7 +478,7 @@ public class SerialPortUtil {
     public static void inspectLocalData(String sendData, int readId, String loraId, String currentStatu, Date date,
                                         int statuTime, String requestId, String clientId) {
         List<LocalData> localData = LitePal.findAll(LocalData.class);
-        Plog.e("本地数据大小", localData.size());
+        Plog.e("本地数据大小："+ localData.size());
         if (localData.size() > 0) {
             if (sendData != null && requestId != null) {
                 Temporary temporary = new Temporary();
@@ -488,7 +489,7 @@ public class SerialPortUtil {
             }
         } else {
             int temSize = readTemporarySize();
-            Plog.e("临时数据大小", temSize);
+            Plog.e("临时数据大小："+ temSize);
             if (temSize > 0) {
                 if (sendData != null && requestId != null) {
                     Temporary temporary = new Temporary();
@@ -498,14 +499,14 @@ public class SerialPortUtil {
                 List<Temporary> temporaryList = LitePal.findAll(Temporary.class);
                 for (Temporary temporaryLists : temporaryList) {
                     String requstId2 = temporaryLists.getRequestId();
-                    Plog.e("获取requstId2", requstId2);
+                    Plog.e("获取requstId2："+ requstId2);
                     String data = temporaryLists.getSendData();
                     if (data != null) {
                         int sendLength = SocketManager.getInstance().send(data);
-                        Plog.e("发送数据长度", sendLength);
+                        Plog.e("发送数据长度："+ sendLength);
                         if (sendLength > 0) {
                             int result = LitePal.deleteAll(Temporary.class, "requestId = ?", requestId);
-                            Plog.e("删除临时数据结果", result);
+                            Plog.e("删除临时数据结果："+ result);
                         }
                     }
                 }
@@ -537,7 +538,7 @@ public class SerialPortUtil {
 //        }
 //
 //        TemporaryData(String requestId, String sendData) {
-//            Plog.e("添加的 sendData", sendData);
+//            Plog.e("添加的 sendData："+ sendData);
 //            this.requestId = requestId;
 //            this.sendData = sendData;
 //        }
